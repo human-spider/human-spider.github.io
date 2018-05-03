@@ -9,6 +9,7 @@ PLIST_BUDDY="/usr/libexec/PlistBuddy"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
 NOCOLOR='\033[0m'
 VERSION_REGEX='^[0-9]+.[0-9]+.[0-9]+$'
 
@@ -34,6 +35,10 @@ GETSOCIAL_PARAMS="--use-ui false --debug true --ignore-cocoapods true"
 
 verbose() {
   echo -e "${GREEN}Talkable: $1${NOCOLOR}"
+}
+
+warn() {
+  echo -e "${YELLOW}Talkable Warning: $1${NOCOLOR}"
 }
 
 fatal() {
@@ -62,15 +67,19 @@ getJSONValue() {
   $PYTHON -c "import sys, json; print json.load(sys.stdin)['$1']"
 }
 
+downloadFile() {
+  curl -# -o "$1" "$2"
+}
+
 downloadAndUnzip() {
   local download_url=$1
   local zip_path=$2
   local unzip_dir=$3
   verbose "downloading zip from $download_url..."
-  curl -# -o $zip_path $download_url
-  unzip -q $zip_path -d $unzip_dir
+  downloadFile "$zip_path" "$download_url"
+  unzip -q "$zip_path" -d "$unzip_dir"
   verbose "downloaded and unzipped to $unzip_dir"
-  rm -f $zip_path
+  rm -f "$zip_path"
 }
 
 # Actions
@@ -80,7 +89,7 @@ selfUpdate() {
   # Verify we have the desired version now, or exit so we don't try to self-update indefinitely
   if [ -n "$REQUIRE_VERSION" ] && [ "$REQUIRE_VERSION" != "$VERSION" ]
   then
-    verbose "Installer could not be updated to version $REQUIRE_VERSION, is at version $VERSION instead"
+    warn "Installer could not be updated to version $REQUIRE_VERSION, is at version $VERSION instead"
     return 0
   fi
 
