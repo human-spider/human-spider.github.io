@@ -3,6 +3,7 @@ ARGUMENTS="$((($#)) && printf ' %q' "$@")"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SCRIPT_PATH="$DIR/$( basename "${BASH_SOURCE[0]}" )"
 VERSION="0.0.1"
+DEBUG=false
 
 PYTHON="python"
 PLIST_BUDDY="/usr/libexec/PlistBuddy"
@@ -29,12 +30,12 @@ TALKABLE_VERSION_URL="https://human-spider.github.io/index.html"
 GETSOCIAL_VERSION_URL="https://downloads.getsocial.im/ios-installer/releases/latest.json"
 FRAMEWORK_BUNDLE_ID='com.talkable.ios-sdk'
 EXTRA_DEPENDENCIES_URL="https://human-spider.github.io/extra-deps.zip"
-GETSOCIAL_PARAMS="--use-ui false --debug true --ignore-cocoapods true"
+GETSOCIAL_PARAMS="--use-ui false --ignore-cocoapods true"
 
 # Helper Functions
 
 verbose() {
-  echo -e "${GREEN}Talkable: $1${NOCOLOR}"
+  $DEBUG && echo -e "${GREEN}Talkable: $1${NOCOLOR}"
 }
 
 warn() {
@@ -101,7 +102,12 @@ selfUpdate() {
   else
     verbose "Updating installer script to version $required_version"
     download_url=$(echo $TALKABLE_DATA | getJSONValue "installer_url")
-    curl -# -o "$SCRIPT_PATH" "$download_url"
+    if [ -z "$download_url" ]
+    then
+      warn "Could not fetch URL to download installer update"
+      return 0
+    fi
+    downloadFile "$SCRIPT_PATH" "$download_url"
     chmod +x "$SCRIPT_PATH"
     /bin/bash "$SCRIPT_PATH" $ARGUMENTS --require-version=$required_version
     exit 0
@@ -230,7 +236,7 @@ EOF
 }
 
 callGetSocialInstaller() {
-  $PYTHON "$GETSOCIAL_INSTALLER_DIR/installer.py" --app-id $GETSOCIAL_APP_ID $GETSOCIAL_PARAMS
+  $PYTHON "$GETSOCIAL_INSTALLER_DIR/installer.py" --app-id $GETSOCIAL_APP_ID $GETSOCIAL_PARAMS --debug $( $DEBUG && echo 'true' || echo 'false' )
 }
 
 # Parse Arguments
@@ -253,6 +259,9 @@ while [ "$1" != "" ]; do
             ;;
         --require-version)
             REQUIRE_VERSION=$VALUE
+            ;;
+        --debug)
+            DEBUG=true
             ;;
         *)
             fatal "unknown parameter \"$PARAM\""
