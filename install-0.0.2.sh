@@ -83,9 +83,10 @@ selfUpdate() {
     verbose "Current installer version $VERSION satisfies requirement"
   else
     verbose "Updating installer script to version $required_version"
-    $download_url=$(echo $TALKABLE_DATA | getJSONValue "installer_url")
-    curl -# -o $SCRIPT_PATH $download_url
-    $ORIGINAL_INVOCATION
+    download_url=$(echo $TALKABLE_DATA | getJSONValue "installer_url")
+    curl -# -o "$SCRIPT_PATH" "$download_url"
+    chmod +x "$SCRIPT_PATH"
+    /bin/bash "$ORIGINAL_INVOCATION"
     exit 0
   fi
 }
