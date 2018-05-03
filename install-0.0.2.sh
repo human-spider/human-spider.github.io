@@ -2,7 +2,7 @@
 ARGUMENTS="$((($#)) && printf ' %q' "$@")"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SCRIPT_PATH="$DIR/$( basename "${BASH_SOURCE[0]}" )"
-VERSION="0.0.1"
+VERSION="0.0.2"
 
 PYTHON="python"
 PLIST_BUDDY="/usr/libexec/PlistBuddy"
