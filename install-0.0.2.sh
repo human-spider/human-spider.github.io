@@ -2,7 +2,7 @@
 ARGUMENTS="$((($#)) && printf ' %q' "$@")"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SCRIPT_PATH="$DIR/$( basename "${BASH_SOURCE[0]}" )"
-VERSION="0.0.2"
+VERSION="0.0.1"
 
 PYTHON="python"
 PLIST_BUDDY="/usr/libexec/PlistBuddy"
@@ -76,6 +76,14 @@ downloadAndUnzip() {
 # Actions
 
 selfUpdate() {
+  # Installer script was updated and relaunched.
+  # Verify we have the desired version now, or exit so we don't try to self-update indefinitely
+  if [ -n "$REQUIRE_VERSION" ] && [ "$REQUIRE_VERSION" != "$VERSION" ]
+  then
+    verbose "Installer could not be updated to version $REQUIRE_VERSION, is at version $VERSION instead"
+    return 0
+  fi
+
   local required_version=$(echo $TALKABLE_DATA | getJSONValue "installer_version")
   local download_url=""
   if [ -z "$required_version" ] || [ "$VERSION" = "$required_version" ]
@@ -86,7 +94,7 @@ selfUpdate() {
     download_url=$(echo $TALKABLE_DATA | getJSONValue "installer_url")
     curl -# -o "$SCRIPT_PATH" "$download_url"
     chmod +x "$SCRIPT_PATH"
-    /bin/bash "$SCRIPT_PATH" $ARGUMENTS
+    /bin/bash "$SCRIPT_PATH" $ARGUMENTS --require-version=$required_version
     exit 0
   fi
 }
@@ -233,6 +241,9 @@ while [ "$1" != "" ]; do
             ;;
         --getsocial-app-id | -g)
             GETSOCIAL_APP_ID=$VALUE
+            ;;
+        --require-version)
+            REQUIRE_VERSION=$VALUE
             ;;
         *)
             fatal "unknown parameter \"$PARAM\""
