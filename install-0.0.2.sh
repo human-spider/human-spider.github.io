@@ -1,8 +1,8 @@
 #!/bin/bash
-ORIGINAL_INVOCATION="$(printf %q "$BASH_SOURCE")$((($#)) && printf ' %q' "$@")"
+ARGUMENTS="$((($#)) && printf ' %q' "$@")"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SCRIPT_PATH="$DIR/$( basename "${BASH_SOURCE[0]}" )"
-VERSION="0.0.2"
+VERSION="0.0.1"
 
 PYTHON="python"
 PLIST_BUDDY="/usr/libexec/PlistBuddy"
@@ -86,7 +86,7 @@ selfUpdate() {
     download_url=$(echo $TALKABLE_DATA | getJSONValue "installer_url")
     curl -# -o "$SCRIPT_PATH" "$download_url"
     chmod +x "$SCRIPT_PATH"
-    /bin/bash "$ORIGINAL_INVOCATION"
+    /bin/bash "$SCRIPT_PATH" $ARGUMENTS
     exit 0
   fi
 }
